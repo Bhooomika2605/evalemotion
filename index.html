@@ -3,253 +3,644 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interview Analyzer</title>
+    <title>Advanced AI Interview Analyzer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --bg-primary: #f8fafb;
+            --bg-secondary: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
         }
-        
-        .container {
-            max-width: 1200px;
+
+        .header {
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1400px;
             margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            grid-template-columns: 3fr 2fr;
+            gap: 2rem;
         }
-        
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
         .video-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
         }
-        
-        .analysis-section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
+
         .video-container {
             position: relative;
-            background: #000;
-            border-radius: 4px;
+            border-radius: 12px;
             overflow: hidden;
+            background: #000;
+            aspect-ratio: 16/9;
         }
-        
+
         #videoElement {
             width: 100%;
-            height: 400px;
-            background: #2c2c2c;
+            height: 100%;
+            object-fit: cover;
         }
-        
-        .controls {
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.1);
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            align-items: center;
+            justify-content: center;
         }
-        
-        button {
-            padding: 10px 20px;
+
+        .controls-panel {
+            background: rgba(255,255,255,0.95);
+            padding: 1rem;
+            border-radius: 8px;
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
-            transition: background 0.3s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
-        .primary-btn {
-            background: #007bff;
+
+        .btn-primary {
+            background: var(--primary-color);
             color: white;
         }
-        
-        .secondary-btn {
-            background: #6c757d;
-            color: white;
+
+        .btn-secondary {
+            background: #f0f2f5;
+            color: var(--text-primary);
         }
-        
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
         .metric-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            transition: all 0.3s ease;
         }
-        
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
         .metric-title {
-            font-weight: 600;
-            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
         }
-        
+
         .metric-value {
-            font-size: 24px;
-            color: #007bff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
         }
-        
+
         .emotion-timeline {
-            margin-top: 20px;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        
-        #questionInput {
+
+        .question-panel {
+            margin-top: 1rem;
+        }
+
+        .question-input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 1rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
-        
-        .emotion-label {
+
+        .question-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74,144,226,0.1);
+        }
+
+        .emotion-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin: 2px;
-            font-size: 12px;
-            background: #e9ecef;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+
+        .badge-neutral { background: #f0f2f5; color: #64748b; }
+        .badge-positive { background: #dcfce7; color: #166534; }
+        .badge-negative { background: #fee2e2; color: #991b1b; }
+
+        .recording-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.9);
+            border-radius: 20px;
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+        }
+
+        .recording-dot {
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .suggestions-panel {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: #f0f9ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="video-section">
-            <h2>Interview Session</h2>
-            <div class="video-container">
-                <video id="videoElement" autoplay></video>
-            </div>
-            <div class="controls">
-                <button class="primary-btn" onclick="startInterview()">Start Interview</button>
-                <button class="secondary-btn" onclick="pauseInterview()">Pause</button>
-                <button class="secondary-btn" onclick="endInterview()">End Session</button>
-            </div>
-            <div style="margin-top: 20px;">
-                <input type="text" id="questionInput" placeholder="Enter interview question...">
-                <button class="primary-btn" onclick="askQuestion()">Ask Question</button>
+    <header class="header">
+        <div class="header-content">
+            <h1>AI Interview Analyzer</h1>
+            <div class="session-info">
+                Session ID: <strong>#INT-2024-015</strong>
+                <span class="badge-neutral">In Progress</span>
             </div>
         </div>
-        
-        <div class="analysis-section">
-            <h2>Real-time Analysis</h2>
-            <div class="metric-card">
-                <div class="metric-title">Confidence Score</div>
-                <div class="metric-value" id="confidenceScore">85%</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-title">Stress Level</div>
-                <div class="metric-value" id="stressLevel">Low</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-title">Current Emotion</div>
-                <div id="emotionLabels">
-                    <span class="emotion-label">Neutral</span>
-                    <span class="emotion-label">Engaged</span>
+    </header>
+
+    <div class="main-container">
+        <div class="video-section">
+            <div class="card">
+                <div class="video-container">
+                    <video id="videoElement" autoplay muted></video>
+                    <div class="recording-indicator">
+                        <div class="recording-dot"></div>
+                        <span>Recording</span>
+                    </div>
+                    <div class="controls-panel">
+                        <button class="btn btn-primary" onclick="startInterview()">
+                            <span class="icon">▶</span> Start
+                        </button>
+                        <button class="btn btn-secondary" onclick="pauseInterview()">
+                            <span class="icon">⏸</span> Pause
+                        </button>
+                        <button class="btn btn-secondary" onclick="endInterview()">
+                            <span class="icon">⏹</span> End
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="emotion-timeline">
-                <h3>Emotion Timeline</h3>
-                <canvas id="emotionChart"></canvas>
+
+            <div class="card question-panel">
+                <h3>Interview Questions</h3>
+                <input type="text" class="question-input" id="questionInput" 
+                       placeholder="Type your question or select from suggestions below...">
+                <button class="btn btn-primary" onclick="askQuestion()">Ask Question</button>
+                
+                <div class="suggestions-panel">
+                    <h4>Suggested Questions</h4>
+                    <div class="suggestion-item" onclick="useQuestion(this)">
+                        Tell me about your experience with team leadership.
+                    </div>
+                    <div class="suggestion-item" onclick="useQuestion(this)">
+                        How do you handle challenging situations under pressure?
+                    </div>
+                    <div class="suggestion-item" onclick="useQuestion(this)">
+                        What motivates you in your work?
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <div class="card">
+                <h3>Real-time Analysis</h3>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Confidence Score</div>
+                        <div class="metric-value" id="confidenceScore">85%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Stress Level</div>
+                        <div class="metric-value" id="stressLevel">Low</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Engagement</div>
+                        <div class="metric-value" id="engagementScore">High</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Speech Clarity</div>
+                        <div class="metric-value" id="clarityScore">92%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="emotionLabels">
+                    <span class="emotion-badge badge-positive">Engaged</span>
+                    <span class="emotion-badge badge-neutral">Thoughtful</span>
+                    <span class="emotion-badge badge-negative">Nervous</span>
+                </div>
+
+                <div class="emotion-timeline">
+                    <h3>Emotion Timeline</h3>
+                    <canvas id="emotionChart"></canvas>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Questions Asked</div>
+                        <div class="stat-value">5</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Duration</div>
+                        <div class="stat-value">12:45</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Response Time</div>
+                        <div class="stat-value">2.3s</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
+  <script>
+        let isRecording = false;
+        let interviewStartTime = null;
+        let questionCount = 0;
+        let currentEmotion = 'neutral';
+        
         // Initialize video stream
         async function initializeVideo() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: true,
+                    audio: true 
+                });
                 const videoElement = document.getElementById('videoElement');
                 videoElement.srcObject = stream;
             } catch (err) {
                 console.error("Error accessing camera:", err);
-                alert("Please enable camera access to use this application");
+                alert("Please enable camera and microphone access to use this application");
             }
         }
 
-        // Initialize emotion chart
+        // Initialize emotion chart with multiple datasets
         const ctx = document.getElementById('emotionChart').getContext('2d');
         const emotionChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Array.from({length: 10}, (_, i) => `${i}s`),
+                labels: Array.from({length: 20}, (_, i) => `${i}s`),
                 datasets: [{
-                    label: 'Confidence Level',
-                    data: Array.from({length: 10}, () => Math.random() * 100),
-                    borderColor: '#007bff',
+                    label: 'Confidence',
+                    data: Array.from({length: 20}, () => Math.random() * 100),
+                    borderColor: '#4a90e2',
+                    tension: 0.4
+                }, {
+                    label: 'Engagement',
+                    data: Array.from({length: 20}, () => Math.random() * 100),
+                    borderColor: '#2ecc71',
+                    tension: 0.4
+                }, {
+                    label: 'Stress',
+                    data: Array.from({length: 20}, () => Math.random() * 100),
+                    borderColor: '#e74c3c',
                     tension: 0.4
                 }]
             },
             options: {
                 responsive: true,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        ticks: {
+                            callback: value => value + '%'
+                        }
                     }
                 }
             }
         });
 
-        // Simulated emotion detection updates
-        function updateEmotionData() {
-            const emotions = ['Neutral', 'Happy', 'Engaged', 'Thoughtful', 'Confused'];
-            const confidenceScore = document.getElementById('confidenceScore');
-            const stressLevel = document.getElementById('stressLevel');
+        // Update metrics function
+        function updateMetrics() {
+            const metrics = {
+                confidence: Math.floor(Math.random() * 30) + 70,
+                stress: Math.floor(Math.random() * 100),
+                engagement: Math.floor(Math.random() * 20) + 80,
+                clarity: Math.floor(Math.random() * 15) + 85
+            };
+
+            // Update DOM elements
+            document.getElementById('confidenceScore').textContent = `${metrics.confidence}%`;
+            document.getElementById('stressLevel').textContent = metrics.stress < 30 ? 'Low' : metrics.stress < 70 ? 'Medium' : 'High';
+            document.getElementById('engagementScore').textContent = `${metrics.engagement}%`;
+            document.getElementById('clarityScore').textContent = `${metrics.clarity}%`;
+
+            // Update progress bars
+            document.querySelectorAll('.progress-fill').forEach((fill, index) => {
+                const values = [metrics.confidence, metrics.stress, metrics.engagement, metrics.clarity];
+                fill.style.width = `${values[index]}%`;
+            });
+
+            return metrics;
+        }
+
+        // Update emotion labels
+        function updateEmotionLabels() {
+            const emotions = [
+                { text: 'Engaged', type: 'positive' },
+                { text: 'Thoughtful', type: 'neutral' },
+                { text: 'Confident', type: 'positive' },
+                { text: 'Nervous', type: 'negative' },
+                { text: 'Uncertain', type: 'negative' },
+                { text: 'Enthusiastic', type: 'positive' }
+            ];
+
             const emotionLabels = document.getElementById('emotionLabels');
+            emotionLabels.innerHTML = '';
+
+            // Randomly select 2-3 emotions
+            const selectedEmotions = emotions
+                .sort(() => 0.5 - Math.random())
+                .slice(0, Math.floor(Math.random() * 2) + 2);
+
+            selectedEmotions.forEach(emotion => {
+                const badge = document.createElement('span');
+                badge.className = `emotion-badge badge-${emotion.type}`;
+                badge.textContent = emotion.text;
+                emotionLabels.appendChild(badge);
+            });
+        }
+
+        // Update chart data
+        function updateChartData() {
+            emotionChart.data.datasets.forEach(dataset => {
+                dataset.data.shift();
+                dataset.data.push(Math.random() * 100);
+            });
+            emotionChart.update();
+        }
+
+        // Timer function
+        function updateTimer() {
+            if (!interviewStartTime) return;
             
-            // Simulate real-time updates
-            setInterval(() => {
-                // Update confidence score
-                const newScore = Math.floor(Math.random() * 30) + 70;
-                confidenceScore.textContent = `${newScore}%`;
-                
-                // Update stress level
-                const stressLevels = ['Low', 'Medium', 'High'];
-                stressLevel.textContent = stressLevels[Math.floor(Math.random() * 3)];
-                
-                // Update emotion labels
-                emotionLabels.innerHTML = '';
-                const numEmotions = Math.floor(Math.random() * 2) + 1;
-                for (let i = 0; i < numEmotions; i++) {
-                    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
-                    emotionLabels.innerHTML += `<span class="emotion-label">${emotion}</span>`;
-                }
-                
-                // Update chart
-                emotionChart.data.datasets[0].data.shift();
-                emotionChart.data.datasets[0].data.push(Math.random() * 100);
-                emotionChart.update();
-            }, 2000);
+            const now = new Date();
+            const diff = now - interviewStartTime;
+            const minutes = Math.floor(diff / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            
+            const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.querySelector('.stat-card:nth-child(2) .stat-value').textContent = formattedTime;
         }
 
         // Interview control functions
         function startInterview() {
-            alert("Interview session started");
-            updateEmotionData();
+            if (isRecording) return;
+            
+            isRecording = true;
+            interviewStartTime = new Date();
+            questionCount = 0;
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+            
+            // Update UI
+            document.querySelector('.badge-neutral').textContent = 'In Progress';
+            document.querySelector('.recording-indicator').style.display = 'flex';
+            
+            // Enable question input
+            document.getElementById('questionInput').disabled = false;
         }
 
         function pauseInterview() {
-            alert("Interview paused");
+            isRecording = !isRecording;
+            const pauseButton = document.querySelector('.btn-secondary');
+            pauseButton.innerHTML = `<span class="icon">${isRecording ? '⏸' : '▶'}</span> ${isRecording ? 'Pause' : 'Resume'}`;
+            document.querySelector('.recording-indicator').style.display = isRecording ? 'flex' : 'none';
         }
 
         function endInterview() {
-            alert("Interview session ended");
+            isRecording = false;
+            interviewStartTime = null;
+            
+            // Update UI
+            document.querySelector('.badge-neutral').textContent = 'Completed';
+            document.querySelector('.recording-indicator').style.display = 'none';
+            
+            // Disable question input
+            document.getElementById('questionInput').disabled = true;
+            
+            // Show summary
+            showInterviewSummary();
         }
 
+        // Question handling
         function askQuestion() {
-            const question = document.getElementById('questionInput').value;
-            if (question) {
-                alert(`Question asked: ${question}`);
-                document.getElementById('questionInput').value = '';
+            const questionInput = document.getElementById('questionInput');
+            const question = questionInput.value.trim();
+            
+            if (question && isRecording) {
+                questionCount++;
+                document.querySelector('.stat-card:nth-child(1) .stat-value').textContent = questionCount;
+                
+                // Simulate response time
+                const responseTime = (Math.random() * 2 + 1).toFixed(1);
+                document.querySelector('.stat-card:nth-child(3) .stat-value').textContent = `${responseTime}s`;
+                
+                questionInput.value = '';
             }
         }
 
-        // Initialize video on load
-        initializeVideo();
+        function useQuestion(element) {
+            document.getElementById('questionInput').value = element.textContent.trim();
+        }
+
+        // Real-time updates
+        function startRealTimeUpdates() {
+            if (!isRecording) return;
+            
+            const updateInterval = setInterval(() => {
+                if (!isRecording) {
+                    clearInterval(updateInterval);
+                    return;
+                }
+                
+                updateMetrics();
+                updateEmotionLabels();
+                updateChartData();
+                updateTimer();
+            }, 2000);
+        }
+
+        // Interview summary
+        function showInterviewSummary() {
+            const summary = {
+                duration: document.querySelector('.stat-card:nth-child(2) .stat-value').textContent,
+                questionsAsked: questionCount,
+                averageConfidence: Math.floor(Array.from(emotionChart.data.datasets[0].data).reduce((a, b) => a + b) / 20),
+                averageEngagement: Math.floor(Array.from(emotionChart.data.datasets[1].data).reduce((a, b) => a + b) / 20),
+            };
+
+            alert(`Interview Summary:
+                Duration: ${summary.duration}
+                Questions Asked: ${summary.questionsAsked}
+                Average Confidence: ${summary.averageConfidence}%
+                Average Engagement: ${summary.averageEngagement}%
+            `);
+        }
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeVideo();
+            document.getElementById('questionInput').disabled = true;
+        });
     </script>
 </body>
 </html>
