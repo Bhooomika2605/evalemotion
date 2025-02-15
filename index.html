@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .video-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .analysis-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: 400px;
+            background: #2c2c2c;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        .primary-btn {
+            background: #007bff;
+            color: white;
+        }
+        
+        .secondary-btn {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .metric-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            color: #007bff;
+        }
+        
+        .emotion-timeline {
+            margin-top: 20px;
+        }
+        
+        #questionInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .emotion-label {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-size: 12px;
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="video-section">
+            <h2>Interview Session</h2>
+            <div class="video-container">
+                <video id="videoElement" autoplay></video>
+            </div>
+            <div class="controls">
+                <button class="primary-btn" onclick="startInterview()">Start Interview</button>
+                <button class="secondary-btn" onclick="pauseInterview()">Pause</button>
+                <button class="secondary-btn" onclick="endInterview()">End Session</button>
+            </div>
+            <div style="margin-top: 20px;">
+                <input type="text" id="questionInput" placeholder="Enter interview question...">
+                <button class="primary-btn" onclick="askQuestion()">Ask Question</button>
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Real-time Analysis</h2>
+            <div class="metric-card">
+                <div class="metric-title">Confidence Score</div>
+                <div class="metric-value" id="confidenceScore">85%</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">Stress Level</div>
+                <div class="metric-value" id="stressLevel">Low</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-title">Current Emotion</div>
+                <div id="emotionLabels">
+                    <span class="emotion-label">Neutral</span>
+                    <span class="emotion-label">Engaged</span>
+                </div>
+            </div>
+            
+            <div class="emotion-timeline">
+                <h3>Emotion Timeline</h3>
+                <canvas id="emotionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize video stream
+        async function initializeVideo() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const videoElement = document.getElementById('videoElement');
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing camera:", err);
+                alert("Please enable camera access to use this application");
+            }
+        }
+
+        // Initialize emotion chart
+        const ctx = document.getElementById('emotionChart').getContext('2d');
+        const emotionChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => `${i}s`),
+                datasets: [{
+                    label: 'Confidence Level',
+                    data: Array.from({length: 10}, () => Math.random() * 100),
+                    borderColor: '#007bff',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Simulated emotion detection updates
+        function updateEmotionData() {
+            const emotions = ['Neutral', 'Happy', 'Engaged', 'Thoughtful', 'Confused'];
+            const confidenceScore = document.getElementById('confidenceScore');
+            const stressLevel = document.getElementById('stressLevel');
+            const emotionLabels = document.getElementById('emotionLabels');
+            
+            // Simulate real-time updates
+            setInterval(() => {
+                // Update confidence score
+                const newScore = Math.floor(Math.random() * 30) + 70;
+                confidenceScore.textContent = `${newScore}%`;
+                
+                // Update stress level
+                const stressLevels = ['Low', 'Medium', 'High'];
+                stressLevel.textContent = stressLevels[Math.floor(Math.random() * 3)];
+                
+                // Update emotion labels
+                emotionLabels.innerHTML = '';
+                const numEmotions = Math.floor(Math.random() * 2) + 1;
+                for (let i = 0; i < numEmotions; i++) {
+                    const emotion = emotions[Math.floor(Math.random() * emotions.length)];
+                    emotionLabels.innerHTML += `<span class="emotion-label">${emotion}</span>`;
+                }
+                
+                // Update chart
+                emotionChart.data.datasets[0].data.shift();
+                emotionChart.data.datasets[0].data.push(Math.random() * 100);
+                emotionChart.update();
+            }, 2000);
+        }
+
+        // Interview control functions
+        function startInterview() {
+            alert("Interview session started");
+            updateEmotionData();
+        }
+
+        function pauseInterview() {
+            alert("Interview paused");
+        }
+
+        function endInterview() {
+            alert("Interview session ended");
+        }
+
+        function askQuestion() {
+            const question = document.getElementById('questionInput').value;
+            if (question) {
+                alert(`Question asked: ${question}`);
+                document.getElementById('questionInput').value = '';
+            }
+        }
+
+        // Initialize video on load
+        initializeVideo();
+    </script>
+</body>
+</html>
